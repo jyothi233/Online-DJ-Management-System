@@ -1,0 +1,42 @@
+
+1. CREATION Of TRIGGERS
+A trigger is a special kind of a store procedure that executes in response to certain action on the table like insertion, deletion or updation of data.
+Here in this database, trigger avoids the updation of sold pet values in dj event entity.
+create or replace trigger
+check_sold before update on events
+for each
+row BEGIN
+DECLARE
+checking int;
+set checking=(select count(*) from sold_events where
+event_id=old.event_id); if (checking > 0) then
+signal sqlstate '45000' set message_text = 'cannot update sold event'; end if;
+END
+
+2. CREATION OF STORED PROCEDURES
+A stored procedure is a set of structured query language(SQL) statements with an assigned name, which are stored in a relational database management system as a group, so it can be reused and shared by multiple programs. Stored procedures can access or modify data in a database
+Here in this database, there are two stored procedures
+1. calculations_for_djevents: it calculates the cost of events sold to a particular sale and updates that in sales_details entity by adding the cost with the old total value of that sale
+2. calculations_for_djservices: it calculates the cost of product sold to a particular sale and updates that in sales_details entity by adding the cost with the old total value of that sale.
+
+
+1.1
+calculations_for_djevents
+create procedure calculations_for_EVENTS(in pid varchar(9),in sid
+varchar(9))
+DECLARE
+BEGIN
+cpid,csid int DEFAULT 0; set cpid=(select cost
+from pets where pet_id=pid); set csid=(select total from sales_details where sd_id=sid); set
+csid=csid+cpid; update sales_details set total-csid where sd_id=sid; end
+2.1
+calculations_for_djservices
+create procedure calculations_for_djservices(in ppid varchar(9),in sid varchar(9),
+in qnty int(11))
+BEGIN
+DECLARE
+cppid,csid int DEFAULT 0;
+set cppid=(select cost from pet_products where pp_id=ppid);
+set csid=(select total from sales_details where sd_id=sid);
+set csid=csid+qnty* cppid; update sales_details set total=csid where sd_id=sid;
+end
